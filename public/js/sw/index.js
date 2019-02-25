@@ -3,9 +3,14 @@ self.addEventListener('fetch', function(event) {
     fetch(event.request).then(function(response) {
       if (response.status === 404) {
         // TODO: instead, respond with the gif at
-        // /imgs/dr-evil.gif
-        // using a network request
-        return new Response("Whoops, not found");
+        return fetch('/imgs/dr-evil.gif').then(function(response) {
+          if (response.status === 404) {
+            return new Response("Whoops, not found");
+          }
+          return response;
+        }).catch(function() {
+          console.log('you fucked up');
+        });
       }
       return response;
     }).catch(function() {
