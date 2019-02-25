@@ -36,6 +36,11 @@ IndexController.prototype._registerServiceWorker = function() {
     });
   });
 
+  navigator.serviceWorker.addEventListener('controllerchange', function() {
+    debugger
+    document.location.reload();
+  });
+
   // TODO: listen for the controlling service worker changing
   // and reload the page
 };
@@ -57,6 +62,7 @@ IndexController.prototype._updateReady = function(worker) {
   toast.answer.then(function(answer) {
     if (answer != 'refresh') return;
     // TODO: tell the service worker to skipWaiting
+    worker.postMessage({ skipWaiting: true })
   });
 };
 
