@@ -44,6 +44,7 @@ self.addEventListener('fetch', function(event) {
       return;
     }
     if (requestUrl.pathname.startsWith('/photos/')) {
+      console.log('first');
       event.respondWith(servePhoto(event.request));
       return;
     }
@@ -63,10 +64,22 @@ function servePhoto(request) {
   // Use this url to store & match the image in the cache.
   // This means you only store one copy of each photo.
   var storageUrl = request.url.replace(/-\d+px\.jpg$/, '');
+  return caches.open(contentImgsCache).then(function(cache) {
+    return cache.match(storageUrl).then(function(response) {
+      if (response) return response;
+      console.log('fetching since not in cache');
 
-  // TODO: return images from the "wittr-content-imgs" cache
-  // if they're in there. Otherwise, fetch the images from
-  // the network, put them into the cache, and send it back
+      return fetch(request).then(function(networkResponse) {
+        cache.put(storageUrl, networkResponse.clone());
+        console.log('got the image');
+        return networkResponse;
+      });
+    });
+  });
+
+    // TODO: return images from the "wittr-content-imgs" cache
+    // if they're in there. Otherwise, fetch the images from
+    // the network, put them into the cache, and send it back
   // to the browser.
   //
   // HINT: cache.put supports a plain url as the first parameter
