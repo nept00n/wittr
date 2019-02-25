@@ -158,12 +158,31 @@ IndexController.prototype._openSocket = function() {
 IndexController.prototype._cleanImageCache = function() {
   return this._dbPromise.then(function(db) {
     if (!db) return;
+    var tx = db.transaction('wittrs');
+    var store = tx.objectStore('wittrs');
+    return store.getAll();
 
     // TODO: open the 'wittr' object store, get all the messages,
     // gather all the photo urls.
     //
     // Open the 'wittr-content-imgs' cache, and delete any entry
     // that you no longer need.
+  }).then(function(wittrs) {
+    const photos = wittrs.map(wittr => wittr.photo).filter(wittr => !!wittr);
+    caches.open('wittr-content-imgs').then(function(cache) {
+      cache.keys().then(function(requests) {
+        requests.forEach(function(req) {
+          var url = new URL(req.url);
+          var path = url.pathname;
+          if (photos.indexOf(path) < 0) {
+            cache.delete(req);
+          }
+          console.log(path);
+        });
+        //console.log(requests);
+      });
+    });
+    console.log(photos);
   });
 };
 
