@@ -153,7 +153,7 @@ IndexController.prototype._openSocket = function() {
 // called when the web socket sends message data
 IndexController.prototype._onSocketMessage = function(data) {
   var messages = JSON.parse(data);
-
+  console.log('got the message', messages);
   this._dbPromise.then(function(db) {
     if (!db) return;
 
@@ -162,6 +162,18 @@ IndexController.prototype._onSocketMessage = function(data) {
     messages.forEach(function(message) {
       store.put(message);
     });
+
+    var byDateIndex = store.index('by-date');
+    return byDateIndex.openCursor(null, 'prev');
+
+  }).then(function(cursor) {
+    if (!cursor) return;
+    return cursor.advance(30);
+  }).then(function deleteExtra(cursor) {
+    if (!cursor) return;
+    console.log('third level');
+    cursor.delete().then((success) => console.log(success));
+    return cursor.continue().then(deleteExtra);
 
     // TODO: keep the newest 30 entries in 'wittrs',
     // but delete the rest.
