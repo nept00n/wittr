@@ -14,6 +14,16 @@ dbPromise.then(function(db) {
   console.log('The value of "hello" is:', val);
 });
 
+dbPromise.then(function(db) {
+  var tx = db.transaction('keyval');
+  var keyValStore = tx.objectStore('keyval');
+  return keyValStore.get('favoriteAnimal');
+}).then(function(val) {
+  console.log('The value of "favoriteAnimal" is:', val);
+});
+
+// NOTE to see the changes you may need to refreash in the browser dev tools
+
 // set "foo" to be "bar" in "keyval"
 dbPromise.then(function(db) {
   var tx = db.transaction('keyval', 'readwrite');
@@ -25,7 +35,11 @@ dbPromise.then(function(db) {
 });
 
 dbPromise.then(function(db) {
-  // TODO: in the keyval store, set
-  // "favoriteAnimal" to your favourite animal
-  // eg "cat" or "dog"
+  var tx = db.transaction('keyval', 'readwrite');
+  var keyValStore = tx.objectStore('keyval');
+  keyValStore.put('fox', 'favoriteAnimal');
+  
+  return tx.complete;
+}).then(function() {
+  console.log('Added favoriteAnimal:fox to keyval');
 });
